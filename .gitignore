@@ -8,3 +8,7 @@ playwright-report
 *.tsbuildinfo
 next-env.d.ts
 .vercel
+
+# Supabase CLI (cache local; esta pasta não fica vinculada a projeto remoto) e macOS
+supabase/.temp
+.DS_Store
