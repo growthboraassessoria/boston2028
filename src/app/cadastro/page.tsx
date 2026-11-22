@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { LoginForm } from "@/components/auth/LoginForm";
+import { AccountForm } from "@/components/auth/AccountForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { getSessionUser } from "@/lib/auth/session";
 import { asUser } from "@/lib/db";
 
 export const metadata: Metadata = { title: "Criar meu Boston Passport" };
 
-export default async function CadastroPage() {
+export default async function CadastroPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const sp = await searchParams;
+  const next = sp.next && sp.next.startsWith("/") && !sp.next.startsWith("//") ? sp.next : "/passport";
   const user = await getSessionUser();
   if (user) {
     const has = await asUser(user, (tx) => tx`select 1 from rtb.profiles where user_id = ${user.id} and deleted_at is null`);
@@ -24,8 +26,8 @@ export default async function CadastroPage() {
       <div className="mt-8 rounded-xl border border-white/10 bg-night-850/80 p-5 sm:p-7" data-hero-item>
         {user ? <SignupForm email={user.email} /> : (
           <>
-            <p className="mb-5 text-sm text-mist-200">Primeiro, confirme seu e-mail. Leva menos de um minuto.</p>
-            <LoginForm next="/cadastro" />
+            <p className="mb-5 text-sm text-mist-200">Primeiro, crie seu acesso. Leva menos de um minuto.</p>
+            <AccountForm next={next} />
           </>
         )}
       </div>

@@ -9,7 +9,7 @@ export function emailConfigured() {
 
 type SendResult = { ok: true; id: string } | { ok: false; error: string };
 
-async function sendViaResend(to: string, subject: string, html: string, text: string, idempotencyKey: string): Promise<SendResult> {
+export async function sendViaResend(to: string, subject: string, html: string, text: string, idempotencyKey: string): Promise<SendResult> {
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",

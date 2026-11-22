@@ -1,6 +1,6 @@
-// Sessão do usuário no servidor. Dois motores:
-//  · supabase (produção): Supabase Auth com código/link por e-mail; claims verificadas com getClaims().
-//  · local (só desenvolvimento e testes): código mostrado na tela e cookie assinado. Recusado na Vercel.
+// Sessão do usuário no servidor (o login com CPF + senha está em ./password.ts). Dois motores:
+//  · supabase (produção): Supabase Auth (senha); claims verificadas com getClaims().
+//  · local (só desenvolvimento e testes): senha bcrypt no stub e cookie assinado. Recusado na Vercel.
 // O resto do app só enxerga { id, email } e passa isso ao banco (asUser), onde o RLS decide.
 import "server-only";
 import { cookies } from "next/headers";

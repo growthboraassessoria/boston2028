@@ -35,6 +35,9 @@ create table if not exists auth.users (
   deleted_at timestamptz
 );
 
+-- Senha do login local (bcrypt, como o Supabase Auth guarda em auth.users.encrypted_password).
+alter table auth.users add column if not exists encrypted_password text;
+
 -- Códigos de entrada do login local de desenvolvimento (o Supabase Auth faz isso em produção).
 create table if not exists auth.dev_otp (
   email text primary key,

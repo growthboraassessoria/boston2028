@@ -1,10 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { login, uniqueEmail } from "./helpers";
+import { createAccount, uniqueEmail } from "./helpers";
 
 // Roda com CEP_DRIVER=fixture (CEPs fixos, sem rede). A busca de verdade: scripts/smoke-cep.mjs.
 test("cadastro: CEP obrigatório e busca que preenche cidade e UF", async ({ page }) => {
-  await login(page, uniqueEmail("cep"), "/cadastro");
-  await page.waitForURL(/cadastro/);
+  await createAccount(page, uniqueEmail("cep"));
   await expect(page.locator("label[for=cep]")).not.toContainText("opcional");
   await expect(page.locator("#cep-hint")).toHaveText("Com o CEP, a cidade e a UF se preenchem sozinhas.");
 

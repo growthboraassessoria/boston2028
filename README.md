@@ -24,27 +24,27 @@ Outros comandos do banco: `npm run db:reset` (recria do zero), `npm run db:stop`
 
 ### Contas de demonstração (só no banco local)
 
-No login local, o código de 6 números aparece na tela. Qualquer e-mail novo cria uma conta de atleta.
+O login é com **CPF + senha**. Todas as contas de demonstração usam a senha `Boston2028`. Em "Esqueci minha senha", no ambiente local, o código aparece na tela em vez de ir por e-mail. "Criar minha conta" cria um atleta novo com qualquer CPF válido.
 
-| Conta | Papel |
-| --- | --- |
-| `admin@rtb.local` | super_admin |
-| `coordenacao@rtb.local` | technical_director (o papel do Lucas) |
-| `treinador@rtb.local` | coach |
-| `comercial@rtb.local` | commercial |
-| `vinculo@rtb.local` | membership_verifier |
-| `growth@rtb.local` | growth |
-| `parceiro@rtb.local` | partner_operator (Loja de Tênis Exemplo) |
+| Conta | CPF | Papel |
+| --- | --- | --- |
+| `admin@rtb.local` | 123.456.001-10 | super_admin |
+| `coordenacao@rtb.local` | 123.456.006-24 | technical_director (o papel do Lucas) |
+| `treinador@rtb.local` | 123.456.014-34 | coach |
+| `comercial@rtb.local` | 123.456.005-43 | commercial |
+| `vinculo@rtb.local` | 123.456.015-15 | membership_verifier |
+| `growth@rtb.local` | 123.456.011-91 | growth |
+| `parceiro@rtb.local` | 123.456.013-53 | partner_operator (Loja de Tênis Exemplo) |
 
 Atletas do seed:
-- `ana.elegivel@rtb.local`: elegível preliminar, aluna verificada;
-- `bruno.quase@rtb.local`: Quase lá, não aluno;
-- `carla.quase2@rtb.local`: Quase lá, aluna;
-- `diego.lesao@rtb.local`: Agora não;
-- `elisa.road@rtb.local`: Road ativo;
-- `fabio.next@rtb.local`: convite do NEXT;
-- `gabi.naoaluna@rtb.local`: aprovada, aguardando matrícula;
-- `hugo.info@rtb.local`: pedido de informação.
+- `ana.elegivel@rtb.local` (123.456.002-09): elegível preliminar, aluna verificada;
+- `bruno.quase@rtb.local` (123.456.003-81): Quase lá, não aluno;
+- `carla.quase2@rtb.local` (123.456.004-62): Quase lá, aluna;
+- `diego.lesao@rtb.local` (123.456.007-05): Agora não;
+- `elisa.road@rtb.local` (123.456.008-96): Road ativo;
+- `fabio.next@rtb.local` (123.456.009-77): convite do NEXT;
+- `gabi.naoaluna@rtb.local` (123.456.010-00): aprovada, aguardando matrícula;
+- `hugo.info@rtb.local` (123.456.012-72): pedido de informação.
 
 ## Banco
 
@@ -60,32 +60,24 @@ Atletas do seed:
 - **Seed** (`supabase/seed.sql`): só para demonstração local. Recusa rodar se houver perfil real.
 - **Stub local** (`supabase/local/supabase_stub.sql`): recria papéis, `auth.uid()` e storage do Supabase no Postgres local. **Nunca aplicar num projeto Supabase.**
 
-### Aplicar num projeto Supabase (quando o Alex escolher o projeto)
+### Banco de produção (aplicado em 21/11/2026)
 
-> Recomendação: um **projeto dedicado** ao Road to Boston. O Auth do projeto da LP/OS (`zivjyyapvbbaxkegzqys`) está fechado para cadastro público por segurança do BORA OS. Nesse projeto, **nunca** rodar `supabase config push` nem `db push`.
+O Road to Boston roda no banco principal da BORA (`zivjyyapvbbaxkegzqys`), o mesmo da LP, do BORA OS e da Loja, isolado no schema `rtb` (decisão 37).
 
-1. Criar o projeto e vincular: `supabase link --project-ref <ref>` (dentro desta pasta).
-2. Aplicar as migrations: `supabase db push` (projeto dedicado) **ou** colar os 8 arquivos, em ordem, no SQL Editor. **Não** rodar o `seed.sql`.
-3. Criar o usuário do app no Postgres. A senha fica fora do git:
-   ```sql
-   create role rtb_app login noinherit password '<senha forte>';
-   grant anon, authenticated, service_role to rtb_app;
-   ```
-   `DATABASE_URL` = pooler em modo transação (porta 6543), com o usuário `rtb_app.<ref>`.
-4. Auth:
-   - **Email** ligado e **Confirm email** ligado.
-   - Em **Sign In / Providers**, deixar cadastro aberto.
-   - O template **Magic Link** deve conter o código `{{ .Token }}` e o link `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/passport`.
-   - Site URL = domínio do app.
-   - Redirect URLs: `https://<domínio>/auth/confirm` e o domínio de preview.
-5. **SMTP próprio (Resend)** em Auth › SMTP Settings. Sem ele, o Supabase só envia para membros da equipe e com limite baixo.
-6. Os buckets `rtb-public` e `rtb-private` nascem pela migration `…0600`. Não precisa expor o schema `rtb` na API: o app acessa o banco pelo servidor.
-7. Atribuir o primeiro super_admin pelo SQL Editor, depois do primeiro login da pessoa:
-   ```sql
-   insert into rtb.user_roles (user_id, role, note)
-   select id, 'super_admin', 'primeiro admin' from auth.users where email = '<email do Alex>';
-   ```
-   O papel do **Lucas** (`technical_director`) é dado depois, pelo OS (Configurações › Papéis).
+- **Nunca** rodar `supabase db push` nem `supabase config push` nesse projeto.
+- Migration nova: aplicar da pasta `projetos/lp-vamos-em-frente` (vinculada ao zivjyy) com `supabase db query --linked -f ../road-to-boston/supabase/migrations/<arquivo>.sql`. **Não** rodar o `seed.sql`. As migrations do `rtb` não entram no histórico do zivjyy.
+- Usuário do app: `rtb_app` (NOINHERIT, membro de anon/authenticated/service_role). A senha está no Keychain do Mac, item `supabase-zivjyy-rtb_app`.
+  - `DATABASE_URL` = `postgres://rtb_app.zivjyyapvbbaxkegzqys:<senha>@aws-0-us-east-1.pooler.supabase.com:6543/postgres` (o `aws-1` não reconhece o usuário).
+- **Auth:** o cadastro público continua fechado (segurança do BORA OS). O servidor cria a conta com a chave de serviço (`auth.admin.createUser`) e entra com `signInWithPassword`. Por isso não há template de e-mail nem Redirect URL para configurar no Supabase.
+  - Se o e-mail já tem conta BORA (por exemplo, alguém da equipe do OS), o CPF só é ligado com a senha dessa conta. Trocar a senha pelo "Esqueci minha senha" troca também a senha do OS, porque a conta é a mesma.
+- **E-mail:** o código de "Esqueci minha senha" sai direto pelo Resend (`RESEND_API_KEY` e `RESEND_FROM_EMAIL`), sem passar pela fila. Sem essas variáveis, a tela avisa que é preciso falar com a equipe.
+- **Primeiro super_admin:** depois que a pessoa criar a conta no site, rodar da pasta da LP:
+  ```sql
+  insert into rtb.user_roles (user_id, role, note)
+  select id, 'super_admin', 'primeiro admin' from auth.users where email = '<email do Alex>';
+  ```
+  O papel do **Lucas** (`technical_director`) é dado depois, pelo OS (Configurações › Papéis).
+- **Desfazer tudo:** `drop schema rtb cascade;` e apagar os buckets `rtb-public`/`rtb-private` e as policies `rtb_*` de `storage.objects`. Não toca nada fora do `rtb`.
 
 ## Variáveis
 
@@ -94,6 +86,7 @@ Veja `.env.example`. Em produção:
 - `NEXT_PUBLIC_SUPABASE_URL` e a chave pública (`NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` ou `…ANON_KEY`);
 - `SUPABASE_SERVICE_ROLE_KEY` e `DATABASE_URL`, só no servidor;
 - `AUTH_DRIVER=supabase` e `STORAGE_DRIVER=supabase`;
+- produção atual: projeto Vercel `boston2028` (time bora-assessoria), em https://boston2028.vercel.app, ligado ao GitHub `growthboraassessoria/boston2028` (push em `main` publica);
 - `CRON_SECRET`;
 - `RESEND_API_KEY`, `RESEND_FROM_EMAIL` e `RESEND_WEBHOOK_SECRET`, quando houver.
 
