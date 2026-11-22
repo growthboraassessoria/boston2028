@@ -24,7 +24,7 @@ Outros comandos do banco: `npm run db:reset` (recria do zero), `npm run db:stop`
 
 ### Contas de demonstração (só no banco local)
 
-O login é com **CPF + senha**. Todas as contas de demonstração usam a senha `Boston2028`. Em "Esqueci minha senha", no ambiente local, o código aparece na tela em vez de ir por e-mail. "Criar minha conta" cria um atleta novo com qualquer CPF válido.
+O login é com **CPF + senha**. Todas as contas de demonstração usam a senha `Boston@2028!`. Em "Esqueci minha senha", no ambiente local, o código aparece na tela em vez de ir por e-mail. "Criar minha conta" cria um atleta novo com qualquer CPF válido.
 
 | Conta | CPF | Papel |
 | --- | --- | --- |

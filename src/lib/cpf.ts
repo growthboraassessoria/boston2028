@@ -36,10 +36,25 @@ export function cpfFromBase(base9: string): string {
   return b + d1 + checkDigit(b + d1);
 }
 
-/** Regra de senha do Passport: 8 a 72 caracteres, com letra e número. */
+/** Símbolos aceitos pelo Supabase Auth na regra de senha. */
+export const PASSWORD_SYMBOLS = "!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
+
+/** Texto curto da regra, para mostrar embaixo do campo. */
+export const PASSWORD_RULE = "Pelo menos 12 caracteres, com letra maiúscula, minúscula, número e símbolo (como ! ou @).";
+
+/**
+ * Regra de senha do Passport. É a mesma do Supabase Auth do projeto (dividido com o BORA OS):
+ * 12 a 72 caracteres, com minúscula, maiúscula, número e símbolo. Assim a tela avisa antes do servidor recusar.
+ */
 export function passwordProblem(pw: string): string | null {
-  if (pw.length < 8) return "A senha precisa ter pelo menos 8 caracteres.";
+  if (pw.length < 12) return "A senha precisa ter pelo menos 12 caracteres.";
   if (pw.length > 72) return "A senha pode ter no máximo 72 caracteres.";
-  if (!/[A-Za-zÀ-ÿ]/.test(pw) || !/\d/.test(pw)) return "Use letras e números na senha.";
+  const missing = [
+    !/[a-z]/.test(pw) && "letra minúscula",
+    !/[A-Z]/.test(pw) && "letra maiúscula",
+    !/[0-9]/.test(pw) && "número",
+    ![...pw].some((c) => PASSWORD_SYMBOLS.includes(c)) && "símbolo (como ! ou @)",
+  ].filter(Boolean) as string[];
+  if (missing.length) return `Falta na senha: ${missing.join(", ")}.`;
   return null;
 }

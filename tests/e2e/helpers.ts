@@ -4,7 +4,7 @@ import { cpfFromBase } from "../../src/lib/cpf";
 
 // Banco do e2e (o mesmo do playwright.e2e.config.ts): o login acha o CPF da conta de demonstração pelo e-mail.
 const sql = postgres("postgres://postgres@127.0.0.1:54329/rtb_e2e", { max: 2, onnotice: () => {} });
-export const DEMO_PASSWORD = "Boston2028";
+export const DEMO_PASSWORD = "Boston@2028!";
 const cpfByEmail = new Map<string, string>();
 
 export async function cpfOf(email: string): Promise<string> {

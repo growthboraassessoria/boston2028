@@ -22,10 +22,14 @@ test("CPF: completa os dígitos verificadores (o seed usa a mesma conta em SQL)"
   for (let n = 1; n <= 20; n++) expect(isValidCpf(cpfFromBase(String(123456000 + n)))).toBe(true);
 });
 
-test("senha: 8 a 72 caracteres, com letra e número", () => {
-  expect(passwordProblem("curta1")).toMatch(/8 caracteres/);
-  expect(passwordProblem("somenteletras")).toMatch(/letras e números/);
-  expect(passwordProblem("12345678")).toMatch(/letras e números/);
-  expect(passwordProblem("Boston2028")).toBeNull();
-  expect(passwordProblem("a1".repeat(37))).toMatch(/72/);
+test("senha: mesma regra do Supabase Auth (12+, minúscula, maiúscula, número e símbolo)", () => {
+  expect(passwordProblem("Curta@1")).toMatch(/12 caracteres/);
+  expect(passwordProblem("QaBoston2028x")).toBe("Falta na senha: símbolo (como ! ou @).");
+  expect(passwordProblem("boston@2028!")).toBe("Falta na senha: letra maiúscula.");
+  expect(passwordProblem("BOSTON@2028!")).toBe("Falta na senha: letra minúscula.");
+  expect(passwordProblem("Boston@Road!")).toBe("Falta na senha: número.");
+  expect(passwordProblem("somenteletrasaqui")).toMatch(/maiúscula, número, símbolo/);
+  expect(passwordProblem("Boston@2028!")).toBeNull();
+  expect(passwordProblem("Ab1~cdefghij")).toBeNull();
+  expect(passwordProblem("Aa1!".repeat(19))).toMatch(/72/);
 });

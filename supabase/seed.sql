@@ -125,7 +125,7 @@ end $$;
 
 select 'seed de demonstração aplicado' as ok;
 
--- Login com CPF + senha (demo): toda conta @rtb.local recebe a senha "Boston2028" e um CPF válido fixo
+-- Login com CPF + senha (demo): toda conta @rtb.local recebe a senha "Boston@2028!" e um CPF válido fixo
 -- (base 123456001, 123456002… em ordem alfabética de e-mail). A tabela de CPFs está no README.
 do $$
 declare
@@ -138,7 +138,7 @@ begin
     d1 := (s * 10) % 11; if d1 = 10 then d1 := 0; end if;
     s := d1 * 2; for i in 1..9 loop s := s + substr(b, i, 1)::int * (12 - i); end loop;
     d2 := (s * 10) % 11; if d2 = 10 then d2 := 0; end if;
-    update auth.users set encrypted_password = extensions.crypt('Boston2028', extensions.gen_salt('bf', 6)) where id = r.id;
+    update auth.users set encrypted_password = extensions.crypt('Boston@2028!', extensions.gen_salt('bf', 6)) where id = r.id;
     insert into rtb.login_identities (user_id, cpf) values (r.id, b || d1 || d2) on conflict do nothing;
   end loop;
 end $$;

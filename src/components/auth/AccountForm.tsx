@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { createAccountAction, type AccountState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/Button";
+import { PASSWORD_RULE } from "@/lib/cpf";
 import { authInput, CpfField, FormError, Honeypot, PasswordField } from "./fields";
 
 /** Primeiro passo do cadastro: cria o acesso (CPF + e-mail + senha). Depois vem o formulário do Passport. */
@@ -26,7 +27,7 @@ export function AccountForm({ next }: { next: string }) {
           : <p id="email-help" className="mt-2 text-xs text-mist-400">É para onde enviamos avisos e o código se você esquecer a senha.</p>}
       </div>
       <PasswordField id="password" name="password" label="Crie uma senha" autoComplete="new-password" error={err("password")}
-        help="Pelo menos 8 caracteres, com letras e números." />
+        help={PASSWORD_RULE} />
       <PasswordField id="confirm" name="confirm" label="Repita a senha" autoComplete="new-password" error={err("confirm")} />
       <FormError>{state.field ? undefined : state.error}</FormError>
       <Button type="submit" size="lg" disabled={pending}>{pending ? "Criando…" : "Criar conta e continuar"}</Button>

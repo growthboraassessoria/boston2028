@@ -30,10 +30,10 @@ test("criar conta: senha fraca, senhas diferentes e CPF repetido são recusados"
   await page.locator("#password").fill("curta1");
   await page.locator("#confirm").fill("curta1");
   await page.getByRole("button", { name: "Criar conta e continuar" }).click();
-  await expect(page.locator("#password-err")).toContainText("8 caracteres");
+  await expect(page.locator("#password-err")).toContainText("12 caracteres");
 
   await page.locator("#password").fill(DEMO_PASSWORD);
-  await page.locator("#confirm").fill("Boston2029");
+  await page.locator("#confirm").fill("Boston@2029!");
   await page.getByRole("button", { name: "Criar conta e continuar" }).click();
   await expect(page.locator("#confirm-err")).toHaveText("As duas senhas não são iguais.");
 
@@ -68,14 +68,14 @@ test("esqueci a senha: CPF + e-mail errado não gera código; certo gera, troca 
   const code = (await page.getByTestId("dev-code").textContent())!.match(/\d{6}/)![0];
 
   await page.locator("#code").fill(code === "000000" ? "111111" : "000000");
-  await page.locator("#password").fill("NovaSenha42");
-  await page.locator("#confirm").fill("NovaSenha42");
+  await page.locator("#password").fill("NovaSenha@42");
+  await page.locator("#confirm").fill("NovaSenha@42");
   await page.getByRole("button", { name: "Salvar nova senha e entrar" }).click();
   await expect(page.locator("form [role=alert]")).toContainText("Código inválido");
 
   await page.locator("#code").fill(code);
-  await page.locator("#password").fill("NovaSenha42");
-  await page.locator("#confirm").fill("NovaSenha42");
+  await page.locator("#password").fill("NovaSenha@42");
+  await page.locator("#confirm").fill("NovaSenha@42");
   await page.getByRole("button", { name: "Salvar nova senha e entrar" }).click();
   await page.waitForURL((u) => !u.pathname.startsWith("/login"));
 
@@ -86,5 +86,5 @@ test("esqueci a senha: CPF + e-mail errado não gera código; certo gera, troca 
   await page.locator("#password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.locator("form [role=alert]")).toHaveText("CPF ou senha incorretos.");
-  await login(page, email, "/passport", "NovaSenha42");
+  await login(page, email, "/passport", "NovaSenha@42");
 });

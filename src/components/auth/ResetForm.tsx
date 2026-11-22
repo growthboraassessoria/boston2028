@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { confirmResetAction, requestResetAction, type ResetState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/Button";
-import { formatCpf } from "@/lib/cpf";
+import { formatCpf, PASSWORD_RULE } from "@/lib/cpf";
 import { authInput, CpfField, FormError, Honeypot, PasswordField } from "./fields";
 
 /** Esqueci a senha: 1) CPF + e-mail da conta → código no e-mail; 2) código + senha nova. */
@@ -36,7 +36,7 @@ export function ResetForm() {
             required className={`${authInput} mt-2 text-center font-mono text-2xl tracking-[0.5em]`} />
         </div>
         <PasswordField id="password" name="password" label="Nova senha" autoComplete="new-password"
-          help="Pelo menos 8 caracteres, com letras e números." />
+          help={PASSWORD_RULE} />
         <PasswordField id="confirm" name="confirm" label="Repita a nova senha" autoComplete="new-password" />
         <FormError>{step.error}</FormError>
         <Button type="submit" size="lg" disabled={confirming}>{confirming ? "Salvando…" : "Salvar nova senha e entrar"}</Button>

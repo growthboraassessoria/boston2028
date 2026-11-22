@@ -78,7 +78,7 @@ export async function createAccountAction(_prev: AccountState, form: FormData): 
       case "email_other_cpf":
         return { ...back, field: "email", error: "Este e-mail já está ligado a outro CPF. Entre com aquele CPF." };
       case "weak_password":
-        return { ...back, field: "password", error: "Senha fraca. Use uma senha mais longa, com letras, números e um símbolo." };
+        return { ...back, field: "password", error: "Senha fraca. Use pelo menos 12 caracteres, com maiúscula, minúscula, número e símbolo." };
       default:
         return { ...back, error: "Não conseguimos criar a conta agora. Tente de novo em instantes." };
     }
@@ -137,7 +137,7 @@ export async function confirmResetAction(_prev: ResetState, form: FormData): Pro
     return {
       step: "code", cpf,
       error: r.reason === "invalid_code" ? "Código inválido ou vencido. Peça um novo código."
-        : r.reason === "weak_password" ? "Senha fraca. Use uma senha mais longa, com letras, números e um símbolo."
+        : r.reason === "weak_password" ? "Senha fraca. Use pelo menos 12 caracteres, com maiúscula, minúscula, número e símbolo."
         : "Não conseguimos trocar a senha agora. Tente de novo em instantes.",
     };
   }
