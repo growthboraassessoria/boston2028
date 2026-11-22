@@ -1,0 +1,41 @@
+// OS como coordenação técnica: visão geral → triagem → ficha → decisão "Encaminhar ao BORA NEXT".
+import { chromium } from "@playwright/test";
+const base = process.argv[2] ?? "http://localhost:3530";
+const out = ".data/shots";
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await ctx.newPage();
+const errors = [];
+page.on("pageerror", (e) => errors.push(String(e)));
+page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+async function login(email) {
+  await page.goto(`${base}/login?next=/os`, { waitUntil: "networkidle" });
+  await page.fill("#email", email);
+  await page.getByRole("button", { name: "Receber código" }).click();
+  const code = (await page.getByTestId("dev-code").textContent()).match(/\d{6}/)[0];
+  await page.fill("#code", code);
+  await page.getByRole("button", { name: "Entrar" }).click();
+}
+await login("coordenacao@rtb.local");
+await page.waitForURL((u) => !u.pathname.startsWith("/login"));
+await page.goto(`${base}/os`, { waitUntil: "networkidle" });
+await page.screenshot({ path: `${out}/os-home.png` });
+await page.goto(`${base}/os/triagem`, { waitUntil: "networkidle" });
+await page.screenshot({ path: `${out}/os-triagem.png` });
+await page.getByRole("link", { name: "Bruno Henrique Lima" }).click();
+await page.waitForURL(/candidatos\//);
+await page.getByRole("link", { name: "Qualificação" }).click();
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}/os-ficha.png` });
+await page.getByRole("button", { name: "Encaminhar ao BORA NEXT" }).click();
+await page.getByLabel("Motivo técnico (interno, obrigatório)").fill("Marca 19 min acima do índice; boa base, precisa de volume (teste).");
+await page.getByLabel("Próximo passo (obrigatório)").fill("Comercial orienta matrícula; treinador define metas.");
+await page.screenshot({ path: `${out}/os-decisao.png` });
+await page.getByRole("button", { name: "Registrar decisão" }).click();
+await page.getByText("Decisão registrada").waitFor({ timeout: 10000 });
+await page.waitForTimeout(1200);
+await page.getByRole("link", { name: "Análise técnica" }).click();
+await page.waitForTimeout(600);
+await page.screenshot({ path: `${out}/os-ficha-decidida.png` });
+console.log(JSON.stringify({ errors: errors.slice(0, 6) }));
+await browser.close();

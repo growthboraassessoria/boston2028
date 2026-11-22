@@ -1,0 +1,13 @@
+import { chromium, webkit } from "@playwright/test";
+const [,, url, out, width = "1440", engine = "chromium", full = "1"] = process.argv;
+const browser = await (engine === "webkit" ? webkit : chromium).launch();
+const page = await browser.newPage({ viewport: { width: Number(width), height: 900 }, deviceScaleFactor: 1 });
+const errors = [];
+page.on("pageerror", (e) => errors.push(String(e)));
+page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+await page.goto(url, { waitUntil: "networkidle" });
+await page.waitForTimeout(800);
+const overflow = await page.evaluate(() => document.documentElement.scrollWidth - Number(window.innerWidth));
+await page.screenshot({ path: out, fullPage: full === "1" });
+console.log(JSON.stringify({ overflow, errors: errors.slice(0, 5) }));
+await browser.close();
