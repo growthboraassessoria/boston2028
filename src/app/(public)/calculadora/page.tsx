@@ -6,7 +6,7 @@ import { IndexLab } from "@/components/landing/IndexLab";
 export const revalidate = 300;
 export const metadata: Metadata = {
   title: "Boston Index Lab",
-  description: "Simule o índice da Boston Marathon 2028 para a sua faixa etária no dia da prova, com a tabela oficial versionada.",
+  description: "Simule o índice da Boston Marathon 2028 para a sua faixa etária no dia da prova, com a tabela oficial da B.A.A.",
 };
 
 export default async function CalculadoraPage() {
@@ -23,7 +23,7 @@ export default async function CalculadoraPage() {
       <section aria-labelledby="tabela" className="bg-night-900">
         <Container className="grid gap-10 py-16 sm:py-24 lg:grid-cols-[0.8fr_1.2fr]">
           <SectionHead id="tabela" eyebrow="Tabela vigente" title={<>Índices 2027<br />e 2028</>}
-            lead="Mesmos padrões para 2027 e 2028, segundo a B.A.A. A tabela fica versionada no nosso banco com fonte e data da consulta." />
+            lead="Os índices são os mesmos para 2027 e 2028, segundo a B.A.A. Usamos a tabela oficial, com a fonte e a data da consulta." />
           <StandardsTable version={version} />
         </Container>
       </section>

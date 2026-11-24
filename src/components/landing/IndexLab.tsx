@@ -6,7 +6,7 @@ import { clsx } from "clsx";
 import { ArrowRight, Info, ShieldAlert } from "lucide-react";
 import { runIndexLab, FIT_COPY, type LabInput } from "@/lib/domain/index-lab";
 import { CATEGORY_LABEL, formatDateBR, type ReferenceCategory, type StandardsVersion } from "@/lib/domain/standards";
-import { formatDuration, parseDuration } from "@/lib/domain/time";
+import { formatDuration, maskDuration, parseDuration } from "@/lib/domain/time";
 import { saveSimulation } from "@/lib/actions/simulation";
 import { Button } from "@/components/ui/Button";
 
@@ -123,11 +123,12 @@ export function IndexLab({ version, compact = false }: { version: StandardsVersi
               onChange={(e) => update("birthDate", e.target.value)} className={inputClass(!!errors.birthDate)}
               aria-invalid={!!errors.birthDate} aria-describedby={errors.birthDate ? `${id}-birth-err` : undefined} autoComplete="bday" />
           </Field>
-          <Field id={`${id}-time`} label={form.distance === "HALF" ? "Tempo da meia (h:mm:ss)" : "Tempo da maratona (h:mm:ss)"} error={errors.seconds}>
+          <Field id={`${id}-time`} label={form.distance === "HALF" ? "Tempo da meia (h:mm:ss)" : "Tempo da maratona (h:mm:ss)"} error={errors.seconds}
+            hint={form.distance === "HALF" ? "Digite só os números: 13240 vira 1:32:40." : "Digite só os números: 31230 vira 3:12:30."}>
             <input id={`${id}-time`} inputMode="numeric" placeholder={form.distance === "HALF" ? "1:32:40" : "3:12:30"} required
-              value={form.time} onChange={(e) => update("time", e.target.value.replace(/[^\d:hms]/gi, ""))}
+              value={form.time} onChange={(e) => update("time", maskDuration(e.target.value))}
               className={clsx(inputClass(!!errors.seconds), "tabular")} aria-invalid={!!errors.seconds}
-              aria-describedby={errors.seconds ? `${id}-time-err` : undefined} />
+              aria-describedby={errors.seconds ? `${id}-time-err` : `${id}-time-hint`} />
           </Field>
         </div>
 
@@ -285,12 +286,13 @@ function Stat({ label, value, strong, tone }: { label: string; value: string; st
   );
 }
 
-function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: React.ReactNode }) {
+function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
       <label htmlFor={id} className="text-sm font-medium text-mist-100">{label}</label>
       <div className="mt-2">{children}</div>
-      {error && <p id={`${id}-err`} className="mt-2 text-sm text-danger" role="alert">{error}</p>}
+      {error ? <p id={`${id}-err`} className="mt-2 text-sm text-danger" role="alert">{error}</p>
+        : hint && <p id={`${id}-hint`} className="mt-2 text-xs text-mist-400">{hint}</p>}
     </div>
   );
 }

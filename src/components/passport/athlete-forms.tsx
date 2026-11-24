@@ -12,7 +12,7 @@ import {
   type AthleteResult,
 } from "@/lib/actions/athlete";
 import { formatCep } from "@/lib/domain/cep";
-import { formatDuration, parseDuration, validateMark, type Distance } from "@/lib/domain/time";
+import { formatDuration, maskDuration, parseDuration, validateMark, type Distance } from "@/lib/domain/time";
 import { UF_LIST } from "@/lib/validation/profile";
 import { Button } from "@/components/ui/Button";
 import { CheckRow, ChoiceCards, FieldShell, SelectInput, TextInput } from "@/components/forms/fields";
@@ -664,10 +664,10 @@ export function TestResultForm({ testId, distanceKey, placeholder, resubmit }: {
     }}>
       <p className="text-sm font-medium text-mist-50">{resubmit ? "Enviar outro tempo" : "Enviar meu resultado"}</p>
       <FieldShell id={timeId} label={long ? "Seu tempo (h:mm:ss)" : "Seu tempo (mm:ss)"} error={timeError}
-        hint={`Tempo líquido do relógio ou do app. Ex.: ${placeholder}`}>
+        hint={`Tempo líquido do relógio ou do app. Digite só os números (ex.: ${placeholder.replace(/:/g, "")} vira ${placeholder}).`}>
         <TextInput id={timeId} inputMode="numeric" autoComplete="off" placeholder={placeholder} value={time} className="tabular"
           onChange={(e) => {
-            setTime(e.target.value.replace(/[^\d:hms]/gi, ""));
+            setTime(maskDuration(e.target.value));
             setLocalError(null);
             if (r && !r.ok) setR(null);
           }} invalid={!!timeError}

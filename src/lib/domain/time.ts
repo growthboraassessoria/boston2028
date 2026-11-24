@@ -24,6 +24,17 @@ export const DISTANCE_BOUNDS: Record<Distance, { min: number; max: number }> = {
 
 export type ParseResult = { ok: true; seconds: number } | { ok: false; error: string };
 
+/**
+ * Campo de tempo com teclado só de números (celular): monta h:mm:ss sozinho a partir dos dígitos, da direita para a esquerda.
+ * "31230" → "3:12:30" · "1845" → "18:45" · "3:12:30" colado → "3:12:30". No máximo 6 números (hh:mm:ss).
+ */
+export function maskDuration(raw: string): string {
+  const d = raw.replace(/\D/g, "").slice(0, 6);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, -2)}:${d.slice(-2)}`;
+  return `${d.slice(0, -4)}:${d.slice(-4, -2)}:${d.slice(-2)}`;
+}
+
 /** Aceita "3:05:12", "03:05:12", "3h05m12s", "65:30" (mm:ss) e "1:05" quando hint = "hours". */
 export function parseDuration(raw: string, hint: "auto" | "hours" = "auto"): ParseResult {
   const value = raw.trim().toLowerCase().replace(/\s+/g, "");

@@ -68,7 +68,7 @@ const KNOWN_FIELDS: Record<string, Record<string, FieldRule>> = {
     rounding_decimals: { kind: "int", min: 0, max: 4 },
   },
   privacy: { health_retention_months: { kind: "int", min: 1, max: 120 }, policy_version: { kind: "text" } },
-  commercial: { member_extra_fee: { kind: "num", min: 0, max: 100000 }, next_is_separate_plan: { kind: "bool" } },
+  commercial: { member_extra_fee: { kind: "num", min: 0, max: 100000 }, next_is_separate_plan: { kind: "bool" }, road_requires_elite_plan: { kind: "bool" } },
 };
 
 function checkKnownFields(key: string, value: Record<string, unknown>): string | null {

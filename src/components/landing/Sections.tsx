@@ -62,7 +62,7 @@ export function Hero({ version }: { version: StandardsVersion | null }) {
           ["17.04.2028", "Data da prova usada para a idade"],
           ["42.195 km", "Só maratona certificada qualifica"],
           ["3 dias úteis", "Retorno da coordenação técnica"],
-          ["R$ 0 extra", "Para aluno BORA ativo"],
+          ["R$ 0", "Candidatura e Boston Passport"],
         ].map(([k, v]) => (
           <div key={k} className="py-5 pr-4">
             {/* Os números rodam como cronômetro; o leitor de tela lê o texto fixo. */}
@@ -348,7 +348,7 @@ export function TestsGamification() {
             {[
               ["Na rota", "até 3% acima da referência da sua faixa"],
               ["Índice", "na referência"],
-              ["Boston seguro", "3% ou mais abaixo da referência (nome interno: não garante vaga)"],
+              ["Com folga", "3% ou mais abaixo da referência. Ajuda, mas não garante vaga"],
             ].map(([t, b]) => (
               <div key={t} className="flex items-baseline justify-between gap-4 border-b border-ink/10 pb-3">
                 <span className="font-semibold text-ink">{t}</span>
@@ -374,11 +374,11 @@ export function BenefitsSection() {
     <section aria-labelledby="beneficios" className="bg-night-900">
       <Container className="py-20 sm:py-28">
         <SectionHead id="beneficios" eyebrow="Quem participa" title={<>O que muda<br />para você</>}
-          lead="Aluno BORA ativo confirmado mantém a mensalidade atual e não paga nada a mais pelo projeto. O BORA NEXT também não é plano separado." />
+          lead="A candidatura e o Boston Passport são gratuitos. Para treinar no Road to Boston, o atleta precisa estar no Plano Elite da BORA; a equipe apresenta valores e condições. O BORA NEXT segue na mensalidade normal, sem plano separado." />
         <div className="mt-14 grid gap-4 md:grid-cols-3" data-stagger>
           {[
             ["Boston Passport", "Gratuito para todo cadastrado. Guarda simulações, candidatura, carimbos e evolução, mesmo sem aprovação."],
-            ["Acompanhamento técnico", "Metas por etapa, testes mensais e reavaliação com a coordenação. Recursos completos com matrícula ativa."],
+            ["Acompanhamento técnico", "Metas por etapa, testes mensais e reavaliação com a coordenação. No Road to Boston, o treino é feito no Plano Elite."],
             ["Benefícios de parceiros", "Vitrine no Passport com regras claras e resgate único. Só parceiros cadastrados e confirmados."],
           ].map(([t, b]) => (
             <div key={t} className="rounded-xl border border-white/10 bg-night-850 p-6">
@@ -394,7 +394,6 @@ export function BenefitsSection() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-mist-400">Nutrição, fortalecimento e outros serviços são opcionais e nunca condição de entrada.</p>
       </Container>
     </section>
   );
@@ -402,7 +401,7 @@ export function BenefitsSection() {
 
 export const FAQ_ITEMS: { q: string; a: string }[] = [
   { q: "A BORA garante minha vaga na Boston Marathon?", a: "Não. A inscrição é decidida pela Boston Athletic Association, com regras e corte próprios. Atingir o índice dá o direito de pedir inscrição, não garante a vaga. O Road to Boston 2028 é um projeto independente da BORA, sem afiliação ou parceria com a B.A.A." },
-  { q: "Quanto custa?", a: "Se você é aluno BORA ativo confirmado, continua pagando só a sua mensalidade atual: o projeto não tem cobrança adicional. Quem não é aluno pode se candidatar e ter o Passport de graça; os recursos completos de treino e os benefícios de membro dependem da matrícula normal na BORA." },
+  { q: "Quanto custa?", a: "Candidatar-se e ter o Boston Passport é gratuito. Para treinar no Road to Boston, você precisa estar no Plano Elite da BORA, inclusive se já for aluno em outro plano. A equipe apresenta valores e condições no contato. O BORA NEXT segue na mensalidade normal da BORA, sem plano separado." },
   { q: "Já sou aluno. Por que preciso esperar a verificação?", a: "Porque o vínculo informado no cadastro é conferido pela equipe antes de liberar qualquer recurso de membro. Isso protege você e os outros alunos." },
   { q: "Minha meia maratona conta para Boston?", a: "Não. A meia maratona serve apenas para a triagem interna da BORA (tempo × 2). Para pedir inscrição, a B.A.A. exige uma maratona em percurso certificado." },
   { q: "Que idade vale para o índice?", a: "A idade que você terá no dia da Boston Marathon 2028, 17 de abril de 2028, como a B.A.A. define. A calculadora já faz essa conta." },

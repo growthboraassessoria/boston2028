@@ -12,7 +12,7 @@ export default function TermosPage() {
       <h2>Resultados preliminares</h2>
       <p>A calculadora e a triagem são preliminares. A aprovação técnica para o Road to Boston e a indicação ao BORA NEXT dependem de decisão humana da coordenação técnica da BORA, com registro e justificativa.</p>
       <h2>Custos</h2>
-      <p>O Boston Passport básico é gratuito. Aluno BORA ativo confirmado não paga adicional pelo projeto. Recursos completos de treino e benefícios de membro exigem matrícula normal na BORA. Serviços complementares são opcionais.</p>
+      <p>A candidatura e o Boston Passport são gratuitos. O treino do Road to Boston é feito no Plano Elite da BORA, com valores e condições informados pela equipe. O BORA NEXT segue na mensalidade normal da BORA, sem plano separado. Benefícios de membro exigem matrícula ativa na BORA.</p>
       <h2>Benefícios de parceiros</h2>
       <p>Cada benefício tem regras, validade, estoque e limite por pessoa próprios, informados antes do resgate. O código é pessoal e vale uma única vez.</p>
     </LegalPage>

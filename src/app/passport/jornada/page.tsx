@@ -45,11 +45,10 @@ export default async function JornadaPage({ searchParams }: { searchParams: Prom
             <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-mist-100">
               <p className="font-semibold text-mist-50">Como seguir</p>
               <ol className="mt-2 grid gap-1.5">
-                <li>1. A equipe da BORA entra em contato para combinar sua matrícula normal (mesma mensalidade dos alunos).</li>
+                <li>1. A equipe da BORA entra em contato para combinar sua matrícula {isNext ? "normal (mesma mensalidade dos alunos, sem plano separado)" : "no Plano Elite, com valores e condições"}.</li>
                 <li>2. Com a matrícula feita, a equipe confirma seu vínculo no sistema.</li>
                 <li>3. Sua jornada é liberada aqui no Passport{isNext ? ", com o aceite do BORA NEXT" : ""}.</li>
               </ol>
-              <p className="mt-3 text-xs text-mist-400">Nutrição, fortalecimento e outros serviços são opcionais e nunca condição de entrada.</p>
             </div>
           )}
 

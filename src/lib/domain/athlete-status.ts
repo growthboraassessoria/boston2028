@@ -57,10 +57,11 @@ export function athleteStatusView(s: AthleteSituation): StatusView {
       action: { label: "Ver convite", href: "/passport/jornada" } };
   }
   if (e && e.status === "PENDING_ENROLLMENT") {
-    const journey = e.journey === "BORA_NEXT" ? "o BORA NEXT" : "o Road to Boston 2028";
     return { key: `${e.journey === "BORA_NEXT" ? "next" : "road"}_pending_enrollment`, label: "Aguardando matrícula", tone: "progress",
       headline: e.journey === "BORA_NEXT" ? "Recomendação da coordenação técnica" : "Aprovação técnica: falta a matrícula",
-      body: `Para começar ${journey}, o próximo passo é a matrícula normal na BORA. O projeto não tem cobrança extra além da mensalidade.`,
+      body: e.journey === "BORA_NEXT"
+        ? "Para começar o BORA NEXT, o próximo passo é a matrícula normal na BORA, na mensalidade dos alunos e sem plano separado."
+        : "Para começar o Road to Boston 2028, o próximo passo é a matrícula na BORA no Plano Elite. A equipe entra em contato com valores e condições.",
       action: { label: "Ver próximos passos", href: "/passport/jornada" } };
   }
   if (e && e.status === "PAUSED") {

@@ -84,7 +84,9 @@ test("cenário 4 · aluno confirmado aprovado está no Road; cenário 5 · não 
     await login(other, "gabi.naoaluna@rtb.local", "/passport/jornada");
     await other.goto("/passport/jornada");
     await expect(other.getByText("Aprovação técnica: falta a matrícula")).toBeVisible();
-    await expect(other.getByText(/não tem cobrança extra|mesma mensalidade/).first()).toBeVisible();
+    // Road to Boston = Plano Elite (Lucas, 24/11/2026); o texto antigo de "sem cobrança extra" não aparece mais.
+    await expect(other.getByText(/Plano Elite/).first()).toBeVisible();
+    await expect(other.getByText(/não tem cobrança extra|mesma mensalidade/)).toHaveCount(0);
   } finally {
     await otherCtx.close();
   }
