@@ -11,10 +11,12 @@ import { BookOpen, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { BoraLogo, BoraShield } from "@/components/brand/Bora";
 import { Guilloche } from "@/components/passport/Guilloche";
 import { BenefitsPage, EvolutionPage, IdentityPage, JourneyPage, PAGE_TITLES, StampsPage } from "./Pages";
+import { PassportStack } from "./PassportStack";
 import type { BookData } from "./types";
 
 export const OPENED_KEY = "rtb.passport.opened.v1";
 export const SOUND_KEY = "rtb.passport.sound";
+const PAGE_KEY = "rtb.passport.page";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -58,6 +60,8 @@ export function PassportBook({ data }: { data: BookData }) {
   const [page, setPage] = useState(0);
   const [dir, setDir] = useState(1);
   const [wide, setWide] = useState(false);
+  // Celular (até 639 px): as páginas empilhadas numa rolagem só (PassportStack). Do tablet para cima, o livro 3D.
+  const [compact, setCompact] = useState(false);
   const regionRef = useRef<HTMLDivElement>(null);
   // Ângulo da capa. A face visível é escolhida pelo ângulo (não depende do backface-visibility do Safari).
   const rotate = useMotionValue(0);
@@ -71,14 +75,23 @@ export function PassportBook({ data }: { data: BookData }) {
   useIsoLayoutEffect(() => {
     try {
       if (localStorage.getItem(OPENED_KEY) === data.passportNumber) setOpen(true);
+      const saved = Number(sessionStorage.getItem(PAGE_KEY));
+      if (Number.isInteger(saved) && saved > 0 && saved < PAGE_TITLES.length) setPage(saved);
     } catch {
-      /* armazenamento indisponível: começa fechado */
+      /* armazenamento indisponível: começa fechado, na página 1 */
     }
     const mq = window.matchMedia("(min-width: 960px)");
+    const small = window.matchMedia("(max-width: 639px)");
     setWide(mq.matches);
+    setCompact(small.matches);
     const onChange = (e: MediaQueryListEvent) => setWide(e.matches);
+    const onSmall = (e: MediaQueryListEvent) => setCompact(e.matches);
     mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    small.addEventListener("change", onSmall);
+    return () => {
+      mq.removeEventListener("change", onChange);
+      small.removeEventListener("change", onSmall);
+    };
   }, [data.passportNumber]);
 
   useEffect(() => {
@@ -121,6 +134,12 @@ export function PassportBook({ data }: { data: BookData }) {
       if (target !== cur) {
         setDir(target > cur ? 1 : -1);
         paperSound("turn");
+        haptic();
+        try {
+          sessionStorage.setItem(PAGE_KEY, String(target));
+        } catch {
+          /* ok */
+        }
       }
       return target;
     });
@@ -128,10 +147,10 @@ export function PassportBook({ data }: { data: BookData }) {
 
   // Depois de abrir ou trocar de página, o foco vai para o título da página (leitor de tela anuncia).
   useEffect(() => {
-    if (!open || !animated) return;
+    if (!open || !animated || compact) return;
     const t = window.setTimeout(() => document.getElementById(`page-${page}`)?.focus({ preventScroll: true }), reduce ? 50 : 420);
     return () => window.clearTimeout(t);
-  }, [open, page, animated, reduce]);
+  }, [open, page, animated, reduce, compact]);
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (!open) return;
@@ -141,6 +160,10 @@ export function PassportBook({ data }: { data: BookData }) {
     else if (e.key === "End") { e.preventDefault(); go(PAGE_TITLES.length - 1); }
   }
 
+  if (compact) {
+    return <PassportStack data={data} open={open} onOpen={doOpen} onClose={doClose} cover={<CoverFront data={data} />} />;
+  }
+
   const pages = [
     <IdentityPage key="0" d={data} />, <JourneyPage key="1" d={data} />, <StampsPage key="2" d={data} />,
     <EvolutionPage key="3" d={data} />, <BenefitsPage key="4" d={data} />,
@@ -148,13 +171,33 @@ export function PassportBook({ data }: { data: BookData }) {
 
   return (
     <div className="flex flex-col items-center">
+      {/* Saudação: com o passaporte aberto, o "Fechar" fica aqui (sobra altura para o livro). */}
+      <div className="mb-3 flex min-h-11 w-full max-w-[26rem] items-center justify-between gap-3 lg:max-w-none">
+        <h1 className="display truncate text-[1.6rem] text-mist-50 sm:text-4xl">Olá, {data.firstName}</h1>
+        {open ? (
+          <button type="button" onClick={doClose}
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-white/12 px-3.5 text-sm text-mist-200 transition-colors hover:text-mist-50 active:scale-[0.97]">
+            <X className="size-4" aria-hidden /> Fechar
+          </button>
+        ) : (
+          <span className="tabular shrink-0 font-mono text-xs text-mist-400">{data.passportNumber}</span>
+        )}
+      </div>
+
       <div className="relative w-full" style={{ perspective: 2000 }}>
         <motion.div
-          className="preserve-3d relative mx-auto aspect-[0.7] w-[min(100%,26rem,calc((100dvh-21rem)*0.7))] min-w-[16.5rem]"
+          className="preserve-3d book-size relative mx-auto"
           initial={false}
           animate={{ x: wide && open && !reduce ? "50%" : "0%" }}
           transition={animated ? { type: "spring", bounce: 0.1, duration: 0.7 } : { duration: 0 }}
         >
+          {/* Folhas de baixo: dão profundidade de livro quando aberto. */}
+          <motion.div aria-hidden className="pointer-events-none absolute inset-0" initial={false}
+            animate={{ opacity: open ? 1 : 0 }} transition={{ duration: animated ? 0.4 : 0 }}>
+            <div className="absolute inset-x-[3%] -bottom-[10px] top-3 rounded-r-[10px] rounded-l-[3px] bg-[#cfcabd]" />
+            <div className="absolute inset-x-[1.5%] -bottom-[5px] top-2 rounded-r-[10px] rounded-l-[3px] bg-[#e0dbcf]" />
+          </motion.div>
+
           {/* Miolo: as páginas ficam embaixo da capa. Fechado = inerte para teclado e leitor de tela. */}
           <div
             ref={regionRef}
@@ -170,25 +213,26 @@ export function PassportBook({ data }: { data: BookData }) {
                 <motion.div
                   key={page}
                   custom={dir}
-                  className="absolute inset-0"
+                  className="absolute inset-0 touch-pan-y"
                   role="tabpanel"
                   id={`passport-panel-${page}`}
                   aria-labelledby={`passport-tab-${page}`}
                   variants={{
-                    enter: (d: number) => (reduce ? { opacity: 0 } : { x: d > 0 ? 48 : -48, opacity: 0, rotateY: d > 0 ? -10 : 10 }),
+                    enter: (d: number) => (reduce ? { opacity: 0 } : { x: d > 0 ? "38%" : "-38%", opacity: 0, rotateY: d > 0 ? -14 : 14 }),
                     center: { x: 0, opacity: 1, rotateY: 0 },
-                    exit: (d: number) => (reduce ? { opacity: 0 } : { x: d > 0 ? -48 : 48, opacity: 0, rotateY: d > 0 ? 10 : -10 }),
+                    exit: (d: number) => (reduce ? { opacity: 0 } : { x: d > 0 ? "-38%" : "38%", opacity: 0, rotateY: d > 0 ? 14 : -14 }),
                   }}
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  transition={reduce ? { duration: 0.15 } : { type: "spring", bounce: 0.12, duration: 0.45 }}
+                  transition={reduce ? { duration: 0.15 } : { type: "spring", bounce: 0.08, duration: 0.42 }}
                   drag={reduce ? false : "x"}
+                  dragDirectionLock
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.16}
+                  dragElastic={{ left: page === PAGE_TITLES.length - 1 ? 0.12 : 0.45, right: page === 0 ? 0.12 : 0.45 }}
                   onDragEnd={(_, info) => {
-                    if (info.offset.x < -70 || info.velocity.x < -500) go(page + 1);
-                    else if (info.offset.x > 70 || info.velocity.x > 500) go(page - 1);
+                    if (info.offset.x < -60 || info.velocity.x < -450) go(page + 1);
+                    else if (info.offset.x > 60 || info.velocity.x > 450) go(page - 1);
                   }}
                 >
                   {pages[page]}
@@ -218,7 +262,7 @@ export function PassportBook({ data }: { data: BookData }) {
               onClick={doOpen}
               tabIndex={open ? -1 : 0}
               aria-label="Abrir meu passaporte"
-              className="backface-hidden absolute inset-0 text-left [transform:rotateY(0deg)_translateZ(1px)]"
+              className="backface-hidden absolute inset-0 text-left [transform:rotateY(0deg)_translateZ(1px)] active:scale-[0.99]"
               style={{ visibility: frontVisibility }}
             >
               <span className="block h-full w-full overflow-hidden rounded-r-[12px] rounded-l-[4px]"><CoverFront data={data} /></span>
@@ -232,16 +276,19 @@ export function PassportBook({ data }: { data: BookData }) {
         </motion.div>
       </div>
 
-      {/* Controles */}
-      <div className={clsx("mt-4 w-full max-w-md", wide && open && "lg:max-w-2xl")}>
+      {/* Controles: uma linha só (anterior · nome da página e progresso · próxima). */}
+      <div className={clsx("mt-4 w-full max-w-[26rem]", wide && open && "lg:max-w-2xl")}>
         {open ? (
-          <>
-            <div className="flex items-center gap-1.5">
-              <button type="button" onClick={() => go(page - 1)} disabled={page === 0}
-                className="grid size-11 shrink-0 place-items-center rounded-full border border-white/12 text-mist-100 disabled:opacity-30" aria-label="Página anterior">
-                <ChevronLeft className="size-5" aria-hidden />
-              </button>
-              <div role="tablist" aria-label="Páginas do passaporte" className="grid flex-1 grid-cols-5 gap-1">
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => go(page - 1)} disabled={page === 0}
+              className="grid size-11 shrink-0 place-items-center rounded-full border border-white/12 text-mist-100 transition-[opacity,transform] active:scale-90 disabled:opacity-25" aria-label="Página anterior">
+              <ChevronLeft className="size-5" aria-hidden />
+            </button>
+            <div className="min-w-0 flex-1 text-center">
+              <p className="truncate text-sm font-medium text-mist-50" aria-live="polite">
+                <span className="sr-only">Página {page + 1} de 5: </span>{PAGE_TITLES[page]}
+              </p>
+              <div role="tablist" aria-label="Páginas do passaporte" className="mt-0.5 flex justify-center">
                 {PAGE_TITLES.map((t, i) => (
                   <button key={t} id={`passport-tab-${i}`} role="tab" type="button" aria-selected={page === i} aria-controls={`passport-panel-${i}`}
                     aria-label={`${i + 1}. ${t}`} tabIndex={page === i ? 0 : -1} onClick={() => go(i)}
@@ -249,32 +296,26 @@ export function PassportBook({ data }: { data: BookData }) {
                       if (e.key === "ArrowRight") { go(i + 1); document.getElementById(`passport-tab-${Math.min(i + 1, 4)}`)?.focus(); }
                       if (e.key === "ArrowLeft") { go(i - 1); document.getElementById(`passport-tab-${Math.max(i - 1, 0)}`)?.focus(); }
                     }}
-                    className={clsx("flex min-h-11 flex-col items-center justify-center rounded-md px-1 text-center transition-colors",
-                      page === i ? "bg-white/10 text-volt" : "text-mist-300 hover:text-mist-50")}>
-                    <span className="tabular font-mono text-[0.68rem]">{String(i + 1).padStart(2, "0")}</span>
-                    <span className="mt-0.5 hidden text-[0.68rem] leading-tight lg:block">{t}</span>
+                    className="group grid h-7 w-7 place-items-center rounded-full lg:w-auto lg:px-2">
+                    <span className={clsx("block h-1.5 rounded-full transition-all duration-300 lg:hidden",
+                      page === i ? "w-5 bg-volt" : "w-1.5 bg-mist-500 group-hover:bg-mist-300")} />
+                    <span className={clsx("hidden text-[0.7rem] lg:block", page === i ? "text-volt" : "text-mist-400 group-hover:text-mist-100")}>{t}</span>
                   </button>
                 ))}
               </div>
-              <button type="button" onClick={() => go(page + 1)} disabled={page === PAGE_TITLES.length - 1}
-                className="grid size-11 shrink-0 place-items-center rounded-full border border-white/12 text-mist-100 disabled:opacity-30" aria-label="Próxima página">
-                <ChevronRight className="size-5" aria-hidden />
-              </button>
             </div>
-            <div className="mt-1 flex items-center justify-between gap-3 px-1">
-              <p className="text-sm text-mist-300" aria-live="polite"><span className="sr-only">Página {page + 1} de 5: </span>{PAGE_TITLES[page]}</p>
-              <button type="button" onClick={doClose} className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 text-sm text-mist-300 hover:text-mist-50">
-                <X className="size-4" aria-hidden /> Fechar
-              </button>
-            </div>
-          </>
+            <button type="button" onClick={() => go(page + 1)} disabled={page === PAGE_TITLES.length - 1}
+              className="grid size-11 shrink-0 place-items-center rounded-full border border-white/12 text-mist-100 transition-[opacity,transform] active:scale-90 disabled:opacity-25" aria-label="Próxima página">
+              <ChevronRight className="size-5" aria-hidden />
+            </button>
+          </div>
         ) : (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-1">
             <button type="button" onClick={doOpen}
-              className="inline-flex min-h-12 items-center gap-2 rounded-md bg-volt px-6 font-semibold text-night-950 transition-transform active:scale-[0.98]">
+              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-volt px-6 font-semibold text-night-950 transition-transform active:scale-[0.98]">
               <BookOpen className="size-4" aria-hidden /> Abrir meu passaporte
             </button>
-            <p className="text-center text-xs text-mist-400">Toque na capa ou no botão. Depois, deslize para trocar de página.</p>
+            <p className="text-center text-xs text-mist-400">Depois, deslize para os lados para virar as páginas.</p>
           </div>
         )}
       </div>

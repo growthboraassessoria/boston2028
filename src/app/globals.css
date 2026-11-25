@@ -161,6 +161,39 @@ textarea {
   padding-right: max(1rem, var(--safe-right));
 }
 
+/* Tamanho do passaporte. No celular ocupa a largura toda e a altura que sobra entre o topo e a barra de abas
+   (saudação + controles + respiros = ~14rem). Nunca fica mais alto que a proporção de passaporte (0,7) nem baixo demais. */
+.book-size {
+  width: min(100%, 26rem);
+  height: clamp(
+    23rem,
+    calc(100dvh - 14rem - var(--tabbar-h) - var(--safe-top) - var(--safe-bottom)),
+    calc(min(100vw - 2rem, 26rem) / 0.7)
+  );
+}
+
+/* Seções que abrem e fecham (perfil): altura animada onde o navegador suporta; nos outros, abre direto. */
+:root {
+  interpolate-size: allow-keywords;
+}
+details.fold::details-content {
+  height: 0;
+  overflow: clip;
+  transition: height 0.32s cubic-bezier(0.22, 1, 0.36, 1), content-visibility 0.32s allow-discrete;
+}
+details.fold[open]::details-content {
+  height: auto;
+}
+details.fold > summary {
+  list-style: none;
+}
+details.fold > summary::-webkit-details-marker {
+  display: none;
+}
+details.fold[open] > summary .fold-chevron {
+  transform: rotate(90deg);
+}
+
 /* 3D do passaporte: o Safari precisa do prefixo e da cadeia preserve-3d inteira. */
 .preserve-3d {
   -webkit-transform-style: preserve-3d;

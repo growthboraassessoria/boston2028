@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signup, uniqueEmail } from "./helpers";
+import { noHorizontalOverflow, signup, uniqueEmail } from "./helpers";
 
 test("cenário 20 · sem login vai para o login; atleta não entra no OS nem na ficha de terceiros", async ({ page }) => {
   await page.goto("/passport");
@@ -29,8 +29,18 @@ test("cenário 18 · inputs com 16px ou mais (sem zoom no iPhone) e passaporte a
   await page.goto("/passport");
   await page.getByRole("button", { name: "Abrir meu passaporte" }).last().click();
   await expect(page.getByRole("heading", { name: "Identificação" })).toBeVisible();
-  await page.getByRole("button", { name: "Próxima página" }).click();
-  await expect(page.getByRole("heading", { name: "Minha jornada" })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 1000) < 640) {
+    // Celular: páginas empilhadas numa rolagem só; o atalho leva à página e fica destacado.
+    await expect(page.getByRole("region", { name: "Sua situação" })).toBeVisible();
+    await page.getByRole("navigation", { name: "Páginas do passaporte" }).getByRole("button", { name: /Jornada/ }).click();
+    await expect(page.getByRole("heading", { name: "Minha jornada" })).toBeInViewport();
+    await expect(page.locator("[data-chip][aria-current=true]")).toContainText("Jornada");
+    await expect(page.getByRole("heading", { name: "Benefícios" })).toBeAttached(); // as 5 páginas estão na tela, sem setas
+    await noHorizontalOverflow(page);
+  } else {
+    await page.getByRole("button", { name: "Próxima página" }).click();
+    await expect(page.getByRole("heading", { name: "Minha jornada" })).toBeVisible();
+  }
   await page.getByRole("button", { name: "Fechar" }).click();
   await expect(page.getByRole("button", { name: "Abrir meu passaporte" }).first()).toBeVisible();
 });
@@ -41,8 +51,13 @@ test.describe("cenário 19 · movimento reduzido", () => {
     await signup(page, uniqueEmail("reduz"));
     await page.getByRole("button", { name: "Abrir meu passaporte" }).last().click();
     await expect(page.getByRole("heading", { name: "Identificação" })).toBeVisible();
-    const transform = await page.locator("[aria-label='Abrir meu passaporte']").first().evaluate((el) => getComputedStyle(el.parentElement!).transform);
-    expect(transform === "none" || !transform.includes("matrix3d")).toBe(true);
+    if ((page.viewportSize()?.width ?? 1000) < 640) {
+      // Celular: não existe livro 3D (as páginas são empilhadas).
+      expect(await page.locator(".preserve-3d").count()).toBe(0);
+    } else {
+      const transform = await page.locator("[aria-label='Abrir meu passaporte']").first().evaluate((el) => getComputedStyle(el.parentElement!).transform);
+      expect(transform === "none" || !transform.includes("matrix3d")).toBe(true);
+    }
   });
 });
 

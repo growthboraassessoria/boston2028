@@ -65,8 +65,9 @@ export function PassportShell({ passportNumber, unread, children }: { passportNu
             return (
               <li key={href}>
                 <Link href={href} aria-current={active ? "page" : undefined}
-                  className={clsx("flex h-full min-h-11 flex-col items-center justify-center gap-1 text-[0.68rem] transition-colors",
+                  className={clsx("relative flex h-full min-h-11 flex-col items-center justify-center gap-1 text-[0.68rem] transition-[color,transform] duration-150 active:scale-90 [-webkit-tap-highlight-color:transparent]",
                     active ? "text-volt" : "text-mist-400 hover:text-mist-100")}>
+                  <span aria-hidden className={clsx("absolute top-0 h-0.5 rounded-full bg-volt transition-all duration-300", active ? "w-8 opacity-100" : "w-0 opacity-0")} />
                   <Icon className="size-[22px]" aria-hidden strokeWidth={active ? 2.2 : 1.8} />
                   {label}
                 </Link>

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { clsx } from "clsx";
-import { ArrowRight, Lock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, ChevronDown, Lock } from "lucide-react";
 import { BoraShield } from "@/components/brand/Bora";
 import { Qr } from "@/components/passport/Qr";
 import { Stamp } from "@/components/passport/Stamp";
@@ -12,16 +13,38 @@ import type { BookData } from "./types";
 
 export const PAGE_TITLES = ["Identificação", "Minha jornada", "Carimbos", "Minha evolução", "Benefícios"] as const;
 
-export function PaperPage({ index, children }: { index: number; children: React.ReactNode }) {
+/**
+ * Uma página de papel do passaporte.
+ * - livro (padrão): altura do livro, com rolagem interna e aviso de "tem mais embaixo";
+ * - fluxo (`flow`, celular): altura natural, dentro da rolagem da tela — nada cortado, nenhuma rolagem dentro de rolagem.
+ */
+export function PaperPage({ index, children, flow }: { index: number; children: React.ReactNode; flow?: boolean }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  // Quando a página tem mais conteúdo embaixo, um degradê e uma seta avisam que dá para rolar.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || flow) return;
+    const check = () => setMore(el.scrollHeight - el.clientHeight - el.scrollTop > 8);
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, [flow]);
   return (
-    <div className="light relative flex h-full flex-col overflow-hidden rounded-r-[10px] rounded-l-[3px] bg-paper">
+    <div className={clsx("light relative flex flex-col overflow-hidden rounded-r-[10px] rounded-l-[3px] bg-paper", flow ? "shadow-[0_18px_40px_-22px_rgb(0_0_0/0.7)]" : "h-full")}>
       <Guilloche className="pointer-events-none absolute inset-0 h-full w-full" />
       <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-linear-to-r from-ink/[0.10] to-transparent" aria-hidden />
-      <div className="relative flex items-center justify-between border-b border-ink/10 px-5 pb-2 pt-4 sm:px-6">
-        <span className="label-mono text-[0.6rem] text-mist-600">Boston Passport · RTB 2028</span>
-        <span className="label-mono text-[0.6rem] text-mist-600">{String(index + 1).padStart(2, "0")} / 05</span>
+      <div className="relative flex items-center justify-between gap-3 whitespace-nowrap border-b border-ink/10 px-5 pb-2 pt-4 sm:px-6">
+        <span className="label-mono truncate text-[0.6rem] text-mist-600">Boston Passport · RTB 2028</span>
+        <span className="label-mono tabular text-[0.6rem] text-mist-600">{String(index + 1).padStart(2, "0")} / 05</span>
       </div>
-      <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 pt-4 sm:px-6">{children}</div>
+      <div ref={scrollRef} className={clsx("relative px-5 pb-6 pt-4 sm:px-6", !flow && "min-h-0 flex-1 overflow-y-auto overscroll-contain")}>{children}</div>
+      {!flow && <div aria-hidden className={clsx("pointer-events-none absolute inset-x-0 bottom-0 flex h-14 items-end justify-center bg-linear-to-t from-paper via-paper/85 to-transparent pb-1.5 transition-opacity duration-300",
+        more ? "opacity-100" : "opacity-0")}>
+        <ChevronDown className="size-4 animate-bounce text-mist-600" />
+      </div>}
     </div>
   );
 }
@@ -47,10 +70,10 @@ const TONE: Record<string, string> = {
   neutral: "border-ink/15 bg-white/50",
 };
 
-export function IdentityPage({ d }: { d: BookData }) {
+export function IdentityPage({ d, flow }: { d: BookData; flow?: boolean }) {
   const initials = d.fullName.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   return (
-    <PaperPage index={0}>
+    <PaperPage index={0} flow={flow}>
       <H id="page-0">Identificação</H>
       <div className="mt-3 grid grid-cols-[5.25rem_1fr] gap-3.5 sm:grid-cols-[6.5rem_1fr]">
         <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-night-800">
@@ -88,12 +111,12 @@ export function IdentityPage({ d }: { d: BookData }) {
   );
 }
 
-export function JourneyPage({ d }: { d: BookData }) {
+export function JourneyPage({ d, flow, hideStatus }: { d: BookData; flow?: boolean; hideStatus?: boolean }) {
   const j = d.journey;
   return (
-    <PaperPage index={1}>
+    <PaperPage index={1} flow={flow}>
       <H id="page-1">Minha jornada</H>
-      <div className={clsx("mt-4 rounded-lg border p-4", TONE[d.status.tone])}>
+      {!hideStatus && <div className={clsx("mt-4 rounded-lg border p-4", TONE[d.status.tone])}>
         <p className="font-semibold leading-snug text-ink">{d.status.headline}</p>
         <p className="mt-1.5 text-sm leading-relaxed text-mist-700">{d.status.body}</p>
         {d.status.action && (
@@ -101,7 +124,7 @@ export function JourneyPage({ d }: { d: BookData }) {
             {d.status.action.label} <ArrowRight className="size-4" aria-hidden />
           </Link>
         )}
-      </div>
+      </div>}
       {j.message && (
         <figure className="mt-4 border-l-2 border-blue-700 pl-3">
           <blockquote className="text-sm italic leading-relaxed text-mist-800">“{j.message}”</blockquote>
@@ -128,9 +151,9 @@ export function JourneyPage({ d }: { d: BookData }) {
   );
 }
 
-export function StampsPage({ d }: { d: BookData }) {
+export function StampsPage({ d, flow }: { d: BookData; flow?: boolean }) {
   return (
-    <PaperPage index={2}>
+    <PaperPage index={2} flow={flow}>
       <H id="page-2">Carimbos da jornada</H>
       <p className="mt-2 text-sm leading-relaxed text-mist-700">Cada etapa validada ganha um carimbo da BORA.</p>
       <ul className="mt-3 grid grid-cols-3 gap-2.5">
@@ -176,10 +199,10 @@ function EvolutionChart({ points, reference }: { points: BookData["evolution"]["
   );
 }
 
-export function EvolutionPage({ d }: { d: BookData }) {
+export function EvolutionPage({ d, flow }: { d: BookData; flow?: boolean }) {
   const e = d.evolution;
   return (
-    <PaperPage index={3}>
+    <PaperPage index={3} flow={flow}>
       <H id="page-3">Minha evolução</H>
       <dl className="mt-3 grid grid-cols-2 gap-x-4">
         <Row k="Melhor marca" v={e.best ? e.best.time : "—"} mono />
@@ -217,22 +240,22 @@ const LOCK_COPY: Record<string, string> = {
   sold_out: "Esgotado",
 };
 
-export function BenefitsPage({ d }: { d: BookData }) {
+export function BenefitsPage({ d, flow }: { d: BookData; flow?: boolean }) {
   const b = d.benefits;
   return (
-    <PaperPage index={4}>
+    <PaperPage index={4} flow={flow}>
       <H id="page-4">Benefícios</H>
       <p className="mt-2 text-sm leading-relaxed text-mist-700">
         {b.availableCount > 0 ? `${b.availableCount} benefício${b.availableCount > 1 ? "s" : ""} disponível${b.availableCount > 1 ? "is" : ""} para você agora.`
           : "Os benefícios de parceiros aparecem aqui conforme seu status e seu vínculo."}
       </p>
-      <ul className="mt-3 grid gap-2">
+      <ul className="mt-3 grid grid-cols-1 gap-2">
         {b.top.map((x) => (
-          <li key={x.slug}>
-            <Link href={`/passport/beneficios/${x.slug}`} className="flex min-h-12 items-center justify-between gap-3 rounded-md border border-ink/10 bg-white/70 px-3 py-2.5 hover:border-blue-700/40">
+          <li key={x.slug} className="min-w-0">
+            <Link href={`/passport/beneficios/${x.slug}`} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-md border border-ink/10 bg-white/70 px-3 py-2.5 hover:border-blue-700/40">
               <span className="min-w-0">
                 <span className="block truncate font-semibold text-ink">{x.title}</span>
-                <span className="block text-xs text-mist-600">{x.partner}{x.locked ? ` · ${LOCK_COPY[x.locked] ?? "Indisponível"}` : ""}</span>
+                <span className="block truncate text-xs text-mist-600">{x.partner}{x.locked ? ` · ${LOCK_COPY[x.locked] ?? "Indisponível"}` : ""}</span>
               </span>
               <ArrowRight className="size-4 shrink-0 text-blue-700" aria-hidden />
             </Link>
