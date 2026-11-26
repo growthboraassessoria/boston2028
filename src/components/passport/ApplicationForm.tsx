@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { clsx } from "clsx";
 import { submitApplication } from "@/lib/actions/application";
-import { maskDuration, parseDuration, validateMark } from "@/lib/domain/time";
+import { durationPreview, maskDuration, parseDuration, selectAllSoon, typingDigits, validateMark } from "@/lib/domain/time";
 import { LAB_STORAGE_KEY } from "@/components/landing/IndexLab";
 import { Button } from "@/components/ui/Button";
 import { CheckRow, ChoiceCards, FieldShell, TextInput } from "@/components/forms/fields";
@@ -118,9 +118,11 @@ export function ApplicationForm({ races }: { races: Race[] }) {
             <ChoiceCards name="markDistance" legend="Distância" value={f.markDistance} onChange={(v) => set("markDistance", v)} invalid={!!errors.markDistance} error={errors.markDistance}
               options={[{ value: "MARATHON", label: "Maratona" }, { value: "HALF", label: "Meia maratona", hint: "Só para a triagem interna" }]} />
             <div className="grid gap-4 sm:grid-cols-2">
-              <FieldShell id="markTime" label="Tempo (h:mm:ss)" error={errors.markSeconds} hint="Digite só os números: 31230 vira 3:12:30.">
+              <FieldShell id="markTime" label="Tempo (h:mm:ss)" error={errors.markSeconds} live
+                hint={durationPreview(f.markTime) ? `Vai ficar ${durationPreview(f.markTime)}` : "Digite só os números: 031230 (ou 31230) vira 3:12:30."}>
                 <TextInput id="markTime" inputMode="numeric" placeholder="3:12:30" value={f.markTime} className="tabular"
-                  onChange={(e) => set("markTime", maskDuration(e.target.value))} invalid={!!errors.markSeconds} />
+                  onChange={(e) => set("markTime", typingDigits(e.target.value))} onFocus={(e) => { set("markTime", typingDigits(f.markTime)); selectAllSoon(e.currentTarget); }}
+                  onBlur={() => set("markTime", maskDuration(f.markTime))} invalid={!!errors.markSeconds} />
               </FieldShell>
               <FieldShell id="markDate" label="Data da prova" error={errors.markDate}>
                 <TextInput id="markDate" type="date" max={today} value={f.markDate} onChange={(e) => set("markDate", e.target.value)} invalid={!!errors.markDate} />

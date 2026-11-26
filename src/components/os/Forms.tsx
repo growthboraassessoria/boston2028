@@ -9,7 +9,7 @@ import {
   addNote, assignCoach, recordContact, recordDecision, saveGoal, setAutomationsPaused, setPolo, startReview, verifyMember,
   type OsResult,
 } from "@/lib/actions/os";
-import { maskDuration, parseDuration } from "@/lib/domain/time";
+import { maskDuration, parseDuration, selectAllSoon, typingDigits } from "@/lib/domain/time";
 
 const input = "block min-h-10 w-full rounded-[3px] border border-white/12 bg-[#060f20] px-3 text-sm text-mist-50 outline-none focus:border-volt [color-scheme:dark]";
 const btn = "inline-flex min-h-10 items-center justify-center gap-2 rounded-[3px] px-3.5 text-sm font-semibold transition-colors disabled:opacity-50";
@@ -232,7 +232,7 @@ export function GoalForm({ userId }: { userId: string }) {
         <select aria-label="Distância" value={f.targetDistance} onChange={(e) => setF({ ...f, targetDistance: e.target.value })} className={input}>
           <option value="">Distância</option><option value="3K">3 km</option><option value="5K">5 km</option><option value="10K">10 km</option><option value="HALF">Meia</option><option value="MARATHON">Maratona</option>
         </select>
-        <input aria-label="Tempo alvo" value={f.time} inputMode="numeric" onChange={(e) => setF({ ...f, time: maskDuration(e.target.value) })} className={clsx(input, "tabular")} placeholder="Tempo (só números)" />
+        <input aria-label="Tempo alvo" value={f.time} inputMode="numeric" onChange={(e) => setF({ ...f, time: typingDigits(e.target.value) })} onFocus={(e) => { setF({ ...f, time: typingDigits(f.time) }); selectAllSoon(e.currentTarget); }} onBlur={() => setF({ ...f, time: maskDuration(f.time) })} className={clsx(input, "tabular")} placeholder="Tempo (só números)" />
         <input aria-label="Prazo" type="date" value={f.dueOn} onChange={(e) => setF({ ...f, dueOn: e.target.value })} className={input} />
       </div>
       <div className="flex items-center gap-3"><button disabled={pending} className={clsx(btn, "border border-white/15 text-mist-100 hover:border-volt")}>Salvar meta</button><Result r={r} /></div>

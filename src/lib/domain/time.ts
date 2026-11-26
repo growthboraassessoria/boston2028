@@ -35,10 +35,42 @@ export function maskDuration(raw: string): string {
   return `${d.slice(0, -4)}:${d.slice(-4, -2)}:${d.slice(-2)}`;
 }
 
+/**
+ * Enquanto a pessoa digita: só números (até 6), SEM reformatar. No Safari do iPhone, mudar o valor a cada tecla
+ * (pôr os dois-pontos) faz o cursor pular e os números entram fora de ordem. Os dois-pontos entram ao sair do campo
+ * (maskDuration) e, enquanto isso, a prévia (durationPreview) mostra como vai ficar.
+ */
+export function typingDigits(raw: string): string {
+  return raw.replace(/\D/g, "").slice(0, 6);
+}
+
+/**
+ * Ao tocar num campo de tempo já preenchido (ex.: simulação anterior guardada no aparelho), seleciona tudo:
+ * o que a pessoa digitar substitui o tempo antigo, em vez de se juntar a ele. Roda depois do React trocar o valor.
+ */
+export function selectAllSoon(el: HTMLInputElement) {
+  requestAnimationFrame(() => {
+    try {
+      el.setSelectionRange(0, el.value.length);
+    } catch {
+      /* alguns teclados não aceitam seleção: segue sem */
+    }
+  });
+}
+
+/** Prévia ao vivo enquanto digita só números: "31230" → "3:12:30". Null se ainda não dá para ler ou se já está formatado. */
+export function durationPreview(raw: string): string | null {
+  const v = raw.trim();
+  if (!/^\d{3,6}$/.test(v)) return null;
+  return maskDuration(v);
+}
+
 /** Aceita "3:05:12", "03:05:12", "3h05m12s", "65:30" (mm:ss) e "1:05" quando hint = "hours". */
 export function parseDuration(raw: string, hint: "auto" | "hours" = "auto"): ParseResult {
-  const value = raw.trim().toLowerCase().replace(/\s+/g, "");
+  let value = raw.trim().toLowerCase().replace(/\s+/g, "");
   if (!value) return { ok: false, error: "Informe o tempo." };
+  // Só números (teclado do celular): "31230" e "031230" valem 3:12:30.
+  if (/^\d{3,6}$/.test(value)) value = maskDuration(value);
   const hms = value.match(/^(\d{1,2})h(?:(\d{1,2})m?)?(?:(\d{1,2})s?)?$/);
   let h = 0, m = 0, s = 0;
   if (hms) {
